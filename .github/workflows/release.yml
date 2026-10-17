@@ -1,6 +1,6 @@
 name: Release
 
-# Новая версия: git tag v1.1 && git push origin v1.1
+# Новая версия: git tag v1.2 && git push origin v1.2
 # На странице релиза появятся APK (по архитектурам) и ZIP с полным кодом для Android Studio.
 on:
   push:
@@ -46,6 +46,12 @@ jobs:
             cp "$f" "dist/WardClick-$TAG-$abi.apk"
           done
           git archive --format=zip --prefix=WardClick/ -o "dist/WardClick-$TAG-source.zip" HEAD
+          # local.properties не хранится в git, но кладётся в архив с ключом карты:
+          # Android Studio сама допишет туда sdk.dir при открытии проекта.
+          mkdir -p zipextra/WardClick
+          cp local.properties zipextra/WardClick/local.properties
+          (cd zipextra && zip -q "../dist/WardClick-$TAG-source.zip" WardClick/local.properties)
+          unzip -l "dist/WardClick-$TAG-source.zip" | tail -3
           ls -la dist
 
       - name: Публикация релиза
@@ -59,7 +65,7 @@ jobs:
           **APK:** для телефона — \`WardClick-$TAG-arm64-v8a.apk\` (старые телефоны — armeabi-v7a, эмулятор — x86_64).
 
           **Код:** \`WardClick-$TAG-source.zip\` — распакуйте и откройте папку WardClick в Android Studio (File → Open).
-          Для карты добавьте в local.properties строку \`MAPKIT_API_KEY=ваш_ключ\`.
+          Ключ Яндекс Карт уже лежит в local.properties внутри архива.
           NOTES
           )"
           fi
