@@ -140,7 +140,21 @@ val downloadDemoPhotos = tasks.register<DownloadDemoPhotos>("downloadDemoPhotos"
             "demo_l5" to listOf("photo-1512917774080-9991f1c4c750", "photo-1613490493576-7fde63acd811"),
             "demo_l6" to listOf("photo-1600585154340-be6161a56a0c", "photo-1600047509807-ba8f99d2cdde"),
             "demo_l7" to listOf("photo-1510798831971-661eb04b3739", "photo-1449158743715-0a90ebb6d2d8"),
-            "demo_l8" to listOf("photo-1600596542815-ffad4c1539a9", "photo-1613977257363-707ba9348227")
+            "demo_l8" to listOf("photo-1600596542815-ffad4c1539a9", "photo-1613977257363-707ba9348227"),
+            "demo_l9" to listOf("photo-1582268611958-ebfd161ef9cf"),
+            "demo_l10" to listOf("photo-1613490493576-7fde63acd811"),
+            "demo_l11" to listOf("photo-1576941089067-2de3c901e126"),
+            "demo_l12" to listOf("photo-1598228723793-52759bba239c"),
+            "demo_l13" to listOf("photo-1416331108676-a22ccb276e35"),
+            "demo_l14" to listOf("photo-1475855581690-80accde3ae2b"),
+            "demo_l15" to listOf("photo-1449844908441-8829872d2607"),
+            "demo_l16" to listOf("photo-1600047509807-ba8f99d2cdde"),
+            "demo_l17" to listOf("photo-1613977257363-707ba9348227"),
+            "demo_l18" to listOf("photo-1523217582562-09d0def993a6"),
+            "demo_l19" to listOf("photo-1602343168117-bb8ffe3e2e9f"),
+            "demo_l20" to listOf("photo-1605276374104-dee2a0ed3cd6"),
+            "demo_l21" to listOf("photo-1568605114967-8130f3a36994"),
+            "demo_l22" to listOf("photo-1580587771525-78b9dba3b914")
         )
     )
 }
