@@ -1,0 +1,67 @@
+name: Release
+
+# Новая версия: git tag v1.1 && git push origin v1.1
+# На странице релиза появятся APK (по архитектурам) и ZIP с полным кодом для Android Studio.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Тег релиза (например v1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Ключ Яндекс Карт берётся из секрета MAPKIT_API_KEY (Settings → Secrets → Actions)
+      - name: local.properties
+        run: echo "MAPKIT_API_KEY=${{ secrets.MAPKIT_API_KEY }}" > local.properties
+
+      - name: Сборка APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Подготовка файлов релиза
+        run: |
+          mkdir -p dist
+          for f in app/build/outputs/apk/debug/*.apk; do
+            abi=$(basename "$f" .apk | sed -e 's/^app-//' -e 's/-debug$//')
+            cp "$f" "dist/WardClick-$TAG-$abi.apk"
+          done
+          git archive --format=zip --prefix=WardClick/ -o "dist/WardClick-$TAG-source.zip" HEAD
+          ls -la dist
+
+      - name: Публикация релиза
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --title "WardClick $TAG" --target "$GITHUB_SHA" --notes "$(cat <<NOTES
+          **APK:** для телефона — \`WardClick-$TAG-arm64-v8a.apk\` (старые телефоны — armeabi-v7a, эмулятор — x86_64).
+
+          **Код:** \`WardClick-$TAG-source.zip\` — распакуйте и откройте папку WardClick в Android Studio (File → Open).
+          Для карты добавьте в local.properties строку \`MAPKIT_API_KEY=ваш_ключ\`.
+          NOTES
+          )"
+          fi
