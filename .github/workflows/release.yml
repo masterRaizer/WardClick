@@ -22,21 +22,31 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Те же ускорения, что в build.yml; кэш Gradle берётся из последней сборки main
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "25"
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       # Ключ Яндекс Карт берётся из секрета MAPKIT_API_KEY (Settings → Secrets → Actions)
-      - name: local.properties
-        run: echo "MAPKIT_API_KEY=${{ secrets.MAPKIT_API_KEY }}" > local.properties
-
-      - name: Сборка APK
+      - name: Настройки Gradle и local.properties
+        env:
+          MAPKIT_API_KEY: ${{ secrets.MAPKIT_API_KEY }}
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          mkdir -p "$GRADLE_USER_HOME"
+          cat >> "$GRADLE_USER_HOME/gradle.properties" <<'EOF'
+          org.gradle.jvmargs=-Xmx4g -XX:+UseParallelGC -Dfile.encoding=UTF-8
+          kotlin.compiler.execution.strategy=in-process
+          EOF
+          echo "MAPKIT_API_KEY=$MAPKIT_API_KEY" > local.properties
+
+      # все три ABI: arm64-v8a, armeabi-v7a, x86_64
+      - name: Сборка APK
+        run: ./gradlew assembleDebug
 
       - name: Подготовка файлов релиза
         run: |

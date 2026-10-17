@@ -1,0 +1,72 @@
+name: Build APK
+
+# Debug-APK на каждый push в main и на pull request в main.
+# Скачать APK: вкладка Actions → нужный запуск → Artifacts.
+#
+# Как ускорена сборка:
+#  - setup-gradle сохраняет ~/.gradle между запусками: Gradle, плагины, зависимости,
+#    уже переведённые в dex библиотеки и локальный build cache. Кэш пишется только из main,
+#    pull request'ы и релизы его читают;
+#  - build cache (org.gradle.caching в gradle.properties) — аналог ccache для Gradle:
+#    компиляция Kotlin/Java, dex и ресурсы берутся из кэша, если их входы не менялись;
+#  - configuration cache тоже переживает запуск, если задан секрет GRADLE_ENCRYPTION_KEY
+#    (без него просто пропускается, см. README);
+#  - в main собирается только arm64-v8a (APK для телефона), все три ABI — в релизе;
+#  - Kotlin компилируется внутри демона Gradle, без отдельного Kotlin-демона;
+#  - новый push отменяет незавершённую сборку той же ветки, правки только в документации
+#    сборку не запускают.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**", "_dump/**", "_photos_preview/**", ".agent/**", ".idea/**", ".github/workflows/release.yml"]
+  pull_request:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**", "_dump/**", "_photos_preview/**", ".agent/**", ".idea/**", ".github/workflows/release.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      # JDK 25 требует gradle/gradle-daemon-jvm.properties; на раннере он уже есть в кэше
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Настройки Gradle для CI
+        env:
+          MAPKIT_API_KEY: ${{ secrets.MAPKIT_API_KEY }}
+        run: |
+          mkdir -p "$GRADLE_USER_HOME"
+          cat >> "$GRADLE_USER_HOME/gradle.properties" <<'EOF'
+          org.gradle.jvmargs=-Xmx4g -XX:+UseParallelGC -Dfile.encoding=UTF-8
+          kotlin.compiler.execution.strategy=in-process
+          EOF
+          echo "MAPKIT_API_KEY=$MAPKIT_API_KEY" > local.properties
+
+      - name: Сборка APK
+        run: ./gradlew assembleDebug -Pwardclick.abis=arm64-v8a
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: WardClick-debug-${{ github.run_number }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0 # APK уже сжат

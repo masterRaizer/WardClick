@@ -18,6 +18,12 @@ val mapkitKey: String = run {
     Properties().apply { load(text.reader()) }.getProperty("MAPKIT_API_KEY", "").trim()
 }
 
+// Архитектуры APK. По умолчанию все три; для быстрой сборки можно оставить одну:
+// ./gradlew assembleDebug -Pwardclick.abis=arm64-v8a (так CI собирает каждый push в main)
+val apkAbis: List<String> = providers.gradleProperty("wardclick.abis").orNull
+    ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }?.ifEmpty { null }
+    ?: listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+
 android {
     namespace = "com.wardclick.app"
     compileSdk = 35
@@ -50,7 +56,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            include(*apkAbis.toTypedArray())
             isUniversalApk = false
         }
     }

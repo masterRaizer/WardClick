@@ -36,3 +36,16 @@
 
 ## Реальный сервер
 Для работы с REST API (Spring Boot + MS SQL) установите `USE_MOCK = false` и укажите `BASE_URL` в `app/build.gradle.kts` (`10.0.2.2` — localhost компьютера из эмулятора).
+
+## Сборка в GitHub Actions
+- **Build APK** (`.github/workflows/build.yml`) — на каждый push и pull request в `main`. APK для телефона (arm64-v8a) лежит в разделе Artifacts запуска 14 дней.
+- **Release** (`.github/workflows/release.yml`) — по тегу: `git tag v1.3 && git push origin v1.3`. APK всех трёх архитектур и ZIP с кодом публикуются в Releases.
+
+Секреты (Settings → Secrets and variables → Actions):
+
+| Секрет | Зачем |
+|---|---|
+| `MAPKIT_API_KEY` | ключ Яндекс Карт для собранных APK |
+| `GRADLE_ENCRYPTION_KEY` | необязательный: сохраняет configuration cache между запусками. Создать: `openssl rand -base64 16` |
+
+Локально можно собрать только одну архитектуру, это быстрее: `./gradlew assembleDebug -Pwardclick.abis=arm64-v8a`.
