@@ -122,6 +122,30 @@ private fun navExit(forward: Boolean): ExitTransition =
         ((if (forward) -1 else 1) * w * NAV_SHIFT).toInt()
     } + fadeOut(tween(durationMillis = NAV_DURATION * 30 / 100, easing = FastOutLinearInEasing))
 
+/**
+ * «Поиск» — стартовый экран графа, поэтому его открываем возвратом к корню стека, без restoreState:
+ * при popUpTo(HomeRoute) { saveState = true } Navigation связывает с HomeRoute сохранённый стек
+ * вкладки, с которой ушли, и restoreState вернул бы её (например, «Аренды») вместо поиска.
+ */
+private fun NavHostController.openHomeTab() {
+    if (!popBackStack(HomeRoute, inclusive = false)) {
+        navigate(HomeRoute) { launchSingleTop = true }
+    }
+}
+
+/** Переход на вкладку нижнего меню с сохранением состояния остальных вкладок. */
+private fun NavHostController.openTab(route: Any) {
+    if (route == HomeRoute) {
+        openHomeTab()
+        return
+    }
+    navigate(route) {
+        popUpTo(HomeRoute) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
 private fun NavDestination.tabIndex(): Int? =
     TAB_ORDER.indexOfFirst { cls -> hasRoute(cls) }.takeIf { it >= 0 }
 
@@ -187,13 +211,7 @@ fun MainAppScreen(appContainer: AppContainer) {
                 GlassNavBar(
                     items = topLevelRoutes.map { GlassNavItem(it.icon, it.label) },
                     selectedIndex = selectedTab,
-                    onSelect = { index ->
-                        navController.navigate(topLevelRoutes[index].route) {
-                            popUpTo(HomeRoute) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                    onSelect = { index -> navController.openTab(topLevelRoutes[index].route) }
                 )
             }
         }
@@ -230,13 +248,7 @@ fun MainAppScreen(appContainer: AppContainer) {
             composable<VipRoute> {
                 VipScreen(
                     viewModel = viewModel(factory = factory),
-                    onChooseMansion = {
-                        navController.navigate(HomeRoute) {
-                            popUpTo(HomeRoute) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                    onChooseMansion = { navController.openHomeTab() }
                 )
             }
             composable<FavoritesRoute> {
