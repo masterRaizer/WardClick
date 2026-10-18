@@ -23,11 +23,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -36,6 +34,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wardclick.app.ui.theme.GlassDefaults
@@ -70,6 +70,23 @@ fun GlassNavBar(
         ) {
             val count = items.size.coerceAtLeast(1)
             val itemWidth = maxWidth / count
+            // одинаковый размер подписей у всех вкладок — подбирается по самой длинной,
+            // иначе «Избранное» сжималась сильнее соседних подписей
+            val measurer = rememberTextMeasurer()
+            val density = LocalDensity.current
+            val baseStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
+            val labelStyle = remember(items, itemWidth, baseStyle, density) {
+                val available = with(density) { (itemWidth - 4.dp).toPx() }
+                var scale = 1f
+                while (scale > 0.6f && items.any {
+                        measurer.measure(it.label, baseStyle.copy(fontSize = baseStyle.fontSize * scale), maxLines = 1, softWrap = false)
+                            .size.width > available
+                    }
+                ) {
+                    scale -= 0.05f
+                }
+                baseStyle.copy(fontSize = baseStyle.fontSize * scale)
+            }
             val indicatorX by animateDpAsState(
                 targetValue = itemWidth * selectedIndex.coerceAtLeast(0),
                 animationSpec = spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
@@ -114,15 +131,14 @@ fun GlassNavBar(
                     ) {
                         Icon(item.icon, contentDescription = item.label, tint = color, modifier = Modifier.size(22.dp))
                         Spacer(Modifier.height(2.dp))
-                        CompositionLocalProvider(LocalContentColor provides color) {
-                            AutoSizeText(
-                                item.label,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
-                                ),
-                                modifier = Modifier.padding(horizontal = 2.dp)
-                            )
-                        }
+                        Text(
+                            item.label,
+                            style = labelStyle.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
+                            color = color,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        )
                     }
                 }
             }

@@ -216,18 +216,15 @@ private fun BookingsTab(
         items(state.bookings, key = { it.id }) { b ->
             val status = b.uiStatus()
             GlassCard(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        b.listingTitle.orEmpty(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    StatusChip(status)
-                }
+                // статус — под названием: рядом с ним длинная плашка «Ожидает подтверждения» обрезала название
+                Text(
+                    b.listingTitle.orEmpty(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                StatusChip(status)
                 if (!b.orderId.isNullOrBlank()) {
                     Text("Заказ ${b.orderId}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 }

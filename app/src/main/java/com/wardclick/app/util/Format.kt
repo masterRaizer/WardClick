@@ -17,12 +17,13 @@ fun pluralRu(n: Int, one: String, few: String, many: String): String {
     }
 }
 
-fun nightsText(n: Int): String = "$n ${pluralRu(n, "ночь", "ночи", "ночей")}"
-fun guestsText(n: Int): String = "$n ${pluralRu(n, "гость", "гостя", "гостей")}"
-fun reviewsText(n: Int): String = "$n ${pluralRu(n, "отзыв", "отзыва", "отзывов")}"
-fun bedroomsText(n: Int): String = "$n ${pluralRu(n, "спальня", "спальни", "спален")}"
-fun bedsText(n: Int): String = "$n ${pluralRu(n, "кровать", "кровати", "кроватей")}"
-fun bathroomsText(n: Int): String = "$n ${pluralRu(n, "ванная", "ванные", "ванных")}"
+// число и слово через неразрывный пробел: «4 гостя» не разрывается при переносе строки
+fun nightsText(n: Int): String = "$n\u00A0${pluralRu(n, "ночь", "ночи", "ночей")}"
+fun guestsText(n: Int): String = "$n\u00A0${pluralRu(n, "гость", "гостя", "гостей")}"
+fun reviewsText(n: Int): String = "$n\u00A0${pluralRu(n, "отзыв", "отзыва", "отзывов")}"
+fun bedroomsText(n: Int): String = "$n\u00A0${pluralRu(n, "спальня", "спальни", "спален")}"
+fun bedsText(n: Int): String = "$n\u00A0${pluralRu(n, "кровать", "кровати", "кроватей")}"
+fun bathroomsText(n: Int): String = "$n\u00A0${pluralRu(n, "ванная", "ванные", "ванных")}"
 
 fun rub(amount: BigDecimal?): String = PriceCalculator.formatPrice(amount)
 
