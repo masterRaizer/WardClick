@@ -1,5 +1,6 @@
 package com.wardclick.app.ui.screens.reviewer
 
+import com.wardclick.app.ui.components.AutoSizeText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -178,7 +179,8 @@ private fun StatCard(value: String, label: String, modifier: Modifier = Modifier
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center, maxLines = 1)
+            // одна строка: при крупном шрифте подпись уменьшается, а не обрезается («средняя оценка»)
+            AutoSizeText(label, style = MaterialTheme.typography.labelMedium)
         }
     }
 }

@@ -2,10 +2,9 @@ name: UI screenshots
 
 # Прогон приложения на эмуляторе Android: тест ScreenshotTour проходит по экранам
 # (светлая и тёмная тема, а также узкий экран 360 dp с крупным шрифтом) и снимает скриншоты. Результат — в ветке ui-screens.
+# Запуск вручную: Actions → UI screenshots → Run workflow.
 on:
   workflow_dispatch:
-  push:
-    branches: [claude/ui-fixes]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
