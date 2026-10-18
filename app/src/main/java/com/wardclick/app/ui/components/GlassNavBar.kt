@@ -65,7 +65,7 @@ fun GlassNavBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(66.dp)
-                .liquidGlass(GlassDefaults.Pill, blur = true, elevation = 14.dp)
+                .liquidGlass(GlassDefaults.Pill, blur = true, elevation = 14.dp, dense = true)
                 .padding(5.dp)
         ) {
             val count = items.size.coerceAtLeast(1)

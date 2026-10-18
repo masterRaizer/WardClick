@@ -130,6 +130,9 @@ fun AdminScreen(viewModel: AdminViewModel) {
                 onClick = { showCreate = true },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("Добавить особняк") },
+                // сплошной цвет: primaryContainer в теме полупрозрачный, и сквозь кнопку просвечивал список
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
             )
         }

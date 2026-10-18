@@ -7,6 +7,14 @@ import com.wardclick.app.data.model.VipServiceDto
 import com.wardclick.app.util.hasHelipad
 import com.wardclick.app.util.ReviewerProfiles
 import androidx.compose.runtime.remember
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -129,6 +137,8 @@ fun DetailsScreen(
     }
 }
 
+private val PhotoHeight = 260.dp
+
 @Composable
 private fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     IconButton(
@@ -157,10 +167,18 @@ private fun DetailsContent(
     val images = listing.imageUrls.orEmpty().filter { it.isNotBlank() }
     val hasCoords = listing.latitude != 0.0 || listing.longitude != 0.0
 
+    // после прокрутки за фото под кнопками «назад» и «избранное» появляется плотная полоса с названием,
+    // иначе текст уезжает под круглые кнопки и обрезается у статус-бара
+    val listState = rememberLazyListState()
+    val collapseAt = with(LocalDensity.current) { (PhotoHeight - 56.dp).roundToPx() }
+    val showBar by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > collapseAt }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             item {
-                Box(modifier = Modifier.fillMaxWidth().height(260.dp)) {
+                Box(modifier = Modifier.fillMaxWidth().height(PhotoHeight)) {
                     if (images.isEmpty()) {
                         RemoteImage(url = null, modifier = Modifier.fillMaxSize())
                     } else {
@@ -307,24 +325,40 @@ private fun DetailsContent(
             item { Spacer(Modifier.height(16.dp)) }
         }
 
-        // кнопки поверх фото
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            BackButton(onBack)
-            IconButton(
-                onClick = onToggleFavorite,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(40.dp)
-                    .background(Color.White.copy(alpha = 0.9f), CircleShape)
+        // кнопки поверх фото; после прокрутки — на полосе с названием
+        Box(modifier = Modifier.fillMaxWidth()) {
+            AnimatedVisibility(visible = showBar, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.matchParentSize()) {
+                Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
+                    Spacer(Modifier.weight(1f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = if (isFavorite) "Убрать из избранного" else "В избранное",
-                    tint = if (isFavorite) Accent else Color(0xFF444444)
+                BackButton(onBack)
+                Text(
+                    listing.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f).alpha(if (showBar) 1f else 0f)
                 )
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Убрать из избранного" else "В избранное",
+                        tint = if (isFavorite) Accent else Color(0xFF444444)
+                    )
+                }
             }
         }
     }

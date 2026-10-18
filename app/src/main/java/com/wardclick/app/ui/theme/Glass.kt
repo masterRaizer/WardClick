@@ -74,16 +74,19 @@ fun glassSelected(): Color =
  * Стеклянная поверхность.
  * @param blur размывать то, что под поверхностью (только для элементов поверх контента экранов).
  * @param elevation мягкая тень под стеклом.
+ * @param dense плотное стекло — для панелей с подписями поверх фото (иначе текст теряется на тёмном фоне).
  */
 @Composable
 fun Modifier.liquidGlass(
     shape: Shape = GlassDefaults.CornerLarge,
     blur: Boolean = false,
-    elevation: Dp = 0.dp
+    elevation: Dp = 0.dp,
+    dense: Boolean = false
 ): Modifier {
     val dark = glassDark()
     val hazeState = LocalHazeState.current
-    val tint = if (dark) Color(0xFF1E1B30).copy(alpha = 0.42f) else Color.White.copy(alpha = 0.38f)
+    val tint = if (dark) Color(0xFF1E1B30).copy(alpha = if (dense) 0.66f else 0.42f)
+    else Color.White.copy(alpha = if (dense) 0.68f else 0.38f)
     val base = if (dark) Color(0xFF0F0D1A) else Color(0xFFF4F0FA)
     val shine = Brush.verticalGradient(
         0f to Color.White.copy(alpha = if (dark) 0.10f else 0.38f),

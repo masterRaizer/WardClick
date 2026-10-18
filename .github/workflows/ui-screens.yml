@@ -1,7 +1,7 @@
 name: UI screenshots
 
 # Прогон приложения на эмуляторе Android: тест ScreenshotTour проходит по экранам
-# (светлая и тёмная тема) и снимает скриншоты. Результат — в ветке ui-screens.
+# (светлая и тёмная тема, а также узкий экран 360 dp с крупным шрифтом) и снимает скриншоты. Результат — в ветке ui-screens.
 on:
   workflow_dispatch:
   push:
@@ -66,6 +66,10 @@ jobs:
             adb shell am instrument -w -e class com.wardclick.app.ScreenshotTour com.wardclick.app.test/androidx.test.runner.AndroidJUnitRunner > instrument-light.txt 2>&1 || true
             adb shell cmd uimode night yes
             adb shell am instrument -w -e prefix dark_ -e class com.wardclick.app.ScreenshotTour com.wardclick.app.test/androidx.test.runner.AndroidJUnitRunner > instrument-dark.txt 2>&1 || true
+            adb shell cmd uimode night no
+            adb shell wm density 480
+            adb shell settings put system font_scale 1.15
+            adb shell am instrument -w -e prefix small_ -e class com.wardclick.app.ScreenshotTour com.wardclick.app.test/androidx.test.runner.AndroidJUnitRunner > instrument-small.txt 2>&1 || true
             adb exec-out run-as com.wardclick.app tar -cf - -C files screens > screens.tar
 
       - name: Выложить скриншоты в ветку ui-screens

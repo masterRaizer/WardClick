@@ -6,11 +6,12 @@ import java.text.DecimalFormatSymbols;
 
 public class PriceCalculator {
     public static String formatPrice(BigDecimal amount) {
-        if (amount == null) return "0 ₽";
+        // неразрывные пробелы: «1 701 000 ₽» не переносится на новую строку посреди числа
+        if (amount == null) return "0\u00A0₽";
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator(' ');
+        symbols.setGroupingSeparator('\u00A0');
         DecimalFormat format = new DecimalFormat("#,##0", symbols);
-        return format.format(amount) + " ₽";
+        return format.format(amount) + "\u00A0₽";
     }
 
     public static BigDecimal calculateTotalPrice(BigDecimal pricePerNight, long nights) {
