@@ -50,7 +50,7 @@ class ScreenshotTour {
             step("03_details") { click("Особняк на Рублёвке"); waitText("Удобства") }
             step("04_details_vip") { scrollTo("Расположение") }
             step("05_details_reviews") { scrollTo("Отзывы (") }
-            step("05b_reviewer") { click("Профиль ›"); waitText("Профиль гостя") }
+            step("05b_reviewer") { scrollTo("Профиль ›"); click("Профиль ›"); waitText("Профиль гостя") }
             step("06_list_again") { back(); waitText("Удобства"); back(); waitText("Особняки в городе") }
             step("07_map") { click("Карта"); Thread.sleep(4000) }
             step("08_filters") { click("Список"); clickDesc("Фильтры"); waitText("Сортировка") }
