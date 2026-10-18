@@ -1,5 +1,6 @@
 package com.wardclick.app.ui.screens.admin
 
+import com.wardclick.app.ui.theme.GlassCard
 import com.wardclick.app.ui.theme.LocalBottomBarPadding
 import com.wardclick.app.ui.components.AutoSizeText
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -76,6 +78,9 @@ import com.wardclick.app.util.uiStatus
 import java.math.BigDecimal
 
 private val TABS = listOf("Обзор", "Аренды", "Особняки")
+
+/** Отступы кнопок в карточках: две кнопки делят ширину пополам и не должны переносить текст. */
+private val ActionPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
 
 @Composable
 fun AdminScreen(viewModel: AdminViewModel) {
@@ -207,56 +212,70 @@ private fun BookingsTab(
     ) {
         items(state.bookings, key = { it.id }) { b ->
             val status = b.uiStatus()
-            Card(shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(2.dp)) {
-                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            b.listingTitle.orEmpty(),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        StatusChip(status)
-                    }
-                    if (!b.orderId.isNullOrBlank()) {
-                        Text("Заказ ${b.orderId}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                    }
+            GlassCard(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        "Гость: ${b.guestName.orEmpty().ifBlank { "—" }} (${b.guestEmail.orEmpty()})",
+                        b.listingTitle.orEmpty(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    StatusChip(status)
+                }
+                if (!b.orderId.isNullOrBlank()) {
+                    Text("Заказ ${b.orderId}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                }
+                Text(
+                    "Гость: ${b.guestName.orEmpty().ifBlank { "—" }} (${b.guestEmail.orEmpty()})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "${b.checkInDate.isoToDisplay()} — ${b.checkOutDate.isoToDisplay()} · ${guestsText(b.guestsCount)}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                if (!b.vipServiceNames.isNullOrEmpty()) {
+                    Text(
+                        (if (b.isAllInclusive) "Всё включено: " else "VIP: ") + b.vipServiceNames.joinToString(", ") + " (${rub(b.vipTotal)})",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.primary
                     )
+                }
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "${b.checkInDate.isoToDisplay()} — ${b.checkOutDate.isoToDisplay()} · ${guestsText(b.guestsCount)}",
-                        style = MaterialTheme.typography.bodyMedium
+                        "Итого",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
                     )
-                    if (!b.vipServiceNames.isNullOrEmpty()) {
-                        Text(
-                            (if (b.isAllInclusive) "Всё включено: " else "VIP: ") + b.vipServiceNames.joinToString(", ") + " (${rub(b.vipTotal)})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    Text(rub(b.totalPrice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                // кнопки — отдельной строкой на всю ширину, чтобы не сжимались рядом с ценой
+                val canConfirm = status == BookingUiStatus.PENDING
+                val canCancel = status == BookingUiStatus.PENDING || status == BookingUiStatus.CONFIRMED
+                if (state.busyId == b.id) {
+                    Box(modifier = Modifier.fillMaxWidth().height(40.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(rub(b.totalPrice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        if (state.busyId == b.id) {
-                            CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-                        } else {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                if (status == BookingUiStatus.PENDING) {
-                                    Button(onClick = { onConfirm(b.id) }) { Text("Подтвердить") }
-                                }
-                                if (status == BookingUiStatus.PENDING || status == BookingUiStatus.CONFIRMED) {
-                                    OutlinedButton(onClick = { cancelTarget = b }) { Text("Отменить") }
-                                }
-                            }
+                } else if (canConfirm || canCancel) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (canCancel) {
+                            OutlinedButton(
+                                onClick = { cancelTarget = b },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = ActionPadding,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                            ) { Text("Отменить", maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        }
+                        if (canConfirm) {
+                            Button(
+                                onClick = { onConfirm(b.id) },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = ActionPadding
+                            ) { Text("Подтвердить", maxLines = 1, overflow = TextOverflow.Ellipsis) }
                         }
                     }
                 }
@@ -290,8 +309,8 @@ private fun ListingsTab(state: AdminUiState, onHide: (String) -> Unit) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(state.listings, key = { it.id }) { l ->
-                Card(shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(2.dp)) {
-                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                GlassCard(contentPadding = PaddingValues(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         RemoteImage(
                             url = l.imageUrl,
                             modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp))

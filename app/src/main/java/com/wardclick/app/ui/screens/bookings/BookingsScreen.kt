@@ -1,5 +1,6 @@
 package com.wardclick.app.ui.screens.bookings
 
+import com.wardclick.app.ui.theme.GlassCard
 import com.wardclick.app.ui.theme.LocalBottomBarPadding
 import com.wardclick.app.ui.components.AutoSizeText
 import androidx.compose.foundation.clickable
@@ -22,8 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -189,74 +189,73 @@ private fun BookingCard(
         val b = booking.checkOutDate.toLocalDateOrNull()
         if (a != null && b != null) ChronoUnit.DAYS.between(a, b).toInt() else 0
     }
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(modifier = Modifier.clickable(onClick = onOpen), verticalAlignment = Alignment.Top) {
-                RemoteImage(
-                    url = booking.listingImageUrl,
-                    modifier = Modifier.size(84.dp).clip(RoundedCornerShape(12.dp))
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        booking.listingTitle.orEmpty(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        booking.listingLocation.orEmpty(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    StatusChip(status)
-                }
-            }
-            Text(
-                "${booking.checkInDate.isoToDisplay()} — ${booking.checkOutDate.isoToDisplay()} · ${nightsText(nights)} · ${guestsText(booking.guestsCount)}",
-                style = MaterialTheme.typography.bodyMedium
+    GlassCard(contentPadding = PaddingValues(12.dp)) {
+        Row(modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onOpen), verticalAlignment = Alignment.Top) {
+            RemoteImage(
+                url = booking.listingImageUrl,
+                modifier = Modifier.size(84.dp).clip(RoundedCornerShape(12.dp))
             )
-            if (!booking.vipServiceNames.isNullOrEmpty()) {
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    (if (booking.isAllInclusive) "Всё включено: " else "VIP: ") + booking.vipServiceNames.joinToString(", "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    booking.listingTitle.orEmpty(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-            }
-            val discount = booking.discount
-            if (discount != null && discount.signum() > 0 || !booking.orderId.isNullOrBlank()) {
                 Text(
-                    listOfNotNull(
-                        booking.orderId?.takeIf { it.isNotBlank() }?.let { "Заказ $it" },
-                        discount?.takeIf { it.signum() > 0 }?.let { "скидка −${rub(it)}" }
-                    ).joinToString(" · "),
+                    booking.listingLocation.orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+                Spacer(Modifier.height(4.dp))
+                StatusChip(status)
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(rub(booking.totalPrice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                when {
-                    busy -> CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                    status == BookingUiStatus.PENDING || status == BookingUiStatus.CONFIRMED ->
-                        OutlinedButton(onClick = onCancel) { Text("Отменить") }
-                    status == BookingUiStatus.COMPLETED && !booking.isReviewed ->
-                        Button(onClick = onReview) { Text("Оставить отзыв") }
-                    status == BookingUiStatus.COMPLETED ->
-                        Text("Отзыв оставлен", style = MaterialTheme.typography.labelLarge, color = Success)
-                }
+        }
+        Text(
+            "${booking.checkInDate.isoToDisplay()} — ${booking.checkOutDate.isoToDisplay()} · ${nightsText(nights)} · ${guestsText(booking.guestsCount)}",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        if (!booking.vipServiceNames.isNullOrEmpty()) {
+            Text(
+                (if (booking.isAllInclusive) "Всё включено: " else "VIP: ") + booking.vipServiceNames.joinToString(", "),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        val discount = booking.discount
+        if (discount != null && discount.signum() > 0 || !booking.orderId.isNullOrBlank()) {
+            Text(
+                listOfNotNull(
+                    booking.orderId?.takeIf { it.isNotBlank() }?.let { "Заказ $it" },
+                    discount?.takeIf { it.signum() > 0 }?.let { "скидка −${rub(it)}" }
+                ).joinToString(" · "),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // цена занимает оставшееся место: кнопка справа измеряется первой и не сжимается
+            Text(
+                rub(booking.totalPrice),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            when {
+                busy -> CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                status == BookingUiStatus.PENDING || status == BookingUiStatus.CONFIRMED ->
+                    OutlinedButton(
+                        onClick = onCancel,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) { Text("Отменить", maxLines = 1) }
+                status == BookingUiStatus.COMPLETED && !booking.isReviewed ->
+                    Button(onClick = onReview) { Text("Оставить отзыв", maxLines = 1) }
+                status == BookingUiStatus.COMPLETED ->
+                    Text("Отзыв оставлен", style = MaterialTheme.typography.labelLarge, color = Success)
             }
         }
     }

@@ -3,9 +3,19 @@ package com.wardclick.app.ui.theme
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -112,6 +122,32 @@ fun Modifier.liquidGlass(
         m.background(glassTint())
     }
     return m.background(shine).border(1.dp, rim, shape)
+}
+
+/**
+ * Стеклянная карточка с контентом (списки аренд, админка и т. п.).
+ * Без тени: под полупрозрачной карточкой тень Android просвечивает серым пятном.
+ */
+@Composable
+fun GlassCard(
+    modifier: Modifier = Modifier,
+    shape: Shape = GlassDefaults.CornerMedium,
+    onClick: (() -> Unit)? = null,
+    contentPadding: PaddingValues = PaddingValues(14.dp),
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp),
+    content: @Composable ColumnScope.() -> Unit
+) {
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .liquidGlass(shape)
+                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                .padding(contentPadding),
+            verticalArrangement = verticalArrangement,
+            content = content
+        )
+    }
 }
 
 /** Фон приложения: мягкие цветные пятна, через которые «светится» стекло. */
