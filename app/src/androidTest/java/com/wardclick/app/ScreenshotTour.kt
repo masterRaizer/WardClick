@@ -11,7 +11,6 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ActivityScenario
-import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.wardclick.app.data.model.CreateBookingRequest
@@ -39,20 +38,22 @@ class ScreenshotTour {
     private val prefix = InstrumentationRegistry.getArguments().getString("prefix", "")
     private val dir = File(context.filesDir, "screens").apply { mkdirs() }
     private val log = StringBuilder()
+    private var scenario: ActivityScenario<MainActivity>? = null
 
     @Test
     fun tour() {
         prepareData()
-        ActivityScenario.launch(MainActivity::class.java).use {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            this.scenario = scenario
             step("01_cities") { waitText("Где хотите отдохнуть?") }
             step("02_list") { click("Москва"); waitText("Особняки в городе") }
             step("03_details") { click("Особняк на Рублёвке"); waitText("Удобства") }
             step("04_details_vip") { scrollTo("Расположение") }
             step("05_details_reviews") { scrollTo("Отзывы (") }
-            step("06_list_again") { Espresso.pressBack(); waitText("Особняки в городе") }
+            step("06_list_again") { back(); waitText("Особняки в городе") }
             step("07_map") { click("Карта"); Thread.sleep(4000) }
             step("08_filters") { click("Список"); clickDesc("Фильтры"); waitText("Сортировка") }
-            step("09_vip") { Espresso.pressBack(); Thread.sleep(500); nav("VIP"); Thread.sleep(1200) }
+            step("09_vip") { click("Показать"); Thread.sleep(800); nav("VIP"); Thread.sleep(1200) }
             step("10_favorites_guest") { nav("Избранное") }
             step("11_login") { nav("Профиль"); click("Войти"); waitText("Тестовые аккаунты", substring = true) }
             step("12_profile_admin") {
@@ -70,9 +71,9 @@ class ScreenshotTour {
                 click("Особняк на Рублёвке"); waitText("Удобства"); click("Арендовать")
                 waitText("Аренда особняка")
             }
-            step("19_booking_form_bottom") { scrollTo("Итого") }
+            step("19_booking_form_bottom") { scrollTo("Оплата при заселении") }
             step("20_user_bookings") {
-                Espresso.pressBack(); Espresso.pressBack(); Thread.sleep(500)
+                back(); back(); Thread.sleep(500)
                 nav("Профиль"); click("Выйти из аккаунта"); Thread.sleep(800)
                 nav("Профиль"); click("Войти"); click("Пользователь"); click("Войти")
                 waitText("Выйти из аккаунта")
@@ -144,6 +145,13 @@ class ScreenshotTour {
     private fun nav(label: String) {
         clickDesc(label)
         Thread.sleep(600)
+    }
+
+    /** «Назад» через диспетчер активити: не требует фокуса окна (в отличие от Espresso.pressBack). */
+    private fun back() {
+        scenario?.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        rule.waitForIdle()
+        Thread.sleep(500)
     }
 
     private fun scrollTo(text: String) {

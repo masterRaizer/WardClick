@@ -58,6 +58,9 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
+            adb shell settings put global hide_error_dialogs 1
+            adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher || true
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS || true
             adb install -r app/build/outputs/apk/debug/app-x86_64-debug.apk
             adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             adb shell am instrument -w -e class com.wardclick.app.ScreenshotTour com.wardclick.app.test/androidx.test.runner.AndroidJUnitRunner > instrument-light.txt 2>&1 || true
