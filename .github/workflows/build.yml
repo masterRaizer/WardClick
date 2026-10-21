@@ -49,6 +49,14 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
+      # compileSdk 37 (его требует Kyant Backdrop): на раннере этой платформы может не быть
+      - name: Android SDK 37
+        uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
+          cmdline-tools-version: "14742923"
+          packages: "platforms;android-37.0 build-tools;37.0.0 platform-tools"
+
       - name: Настройки Gradle для CI
         env:
           MAPKIT_API_KEY: ${{ secrets.MAPKIT_API_KEY }}

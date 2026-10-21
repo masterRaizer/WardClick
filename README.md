@@ -2,7 +2,9 @@
 
 Курсовой проект. Приложение в стиле Airbnb/Agoda: поиск жилья по городу, датам и гостям, карта Яндекса, бронирование, отзывы, избранное и панель администратора.
 
-**Стек:** Kotlin, Jetpack Compose (Material 3), Navigation Compose, ViewModel + StateFlow, Retrofit/OkHttp, Coil, Yandex MapKit; модели и утилиты — на Java. minSdk 26, targetSdk 35.
+**Стек:** Kotlin 2.4, Jetpack Compose (Material 3), Navigation Compose, ViewModel + StateFlow, Retrofit/OkHttp, Coil, Yandex MapKit; модели и утилиты — на Java. minSdk 26, targetSdk 35, compileSdk 37 (AGP 9.3).
+
+Интерфейс «жидкое стекло» сделан на библиотеке [Kyant0/AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) (Kyant Backdrop) — той же, что в приложении Ward: размытие и преломление у края (линза), блики, капля на нижней панели вкладок. Размытие работает с Android 12, линза — с Android 13; на более старых версиях стекло просто плотнее. Подробности и лицензия — в [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ## Запуск
 1. Откройте проект в Android Studio, дождитесь Gradle Sync.

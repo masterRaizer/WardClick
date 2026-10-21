@@ -32,6 +32,14 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
+      # compileSdk 37 (его требует Kyant Backdrop): на раннере этой платформы может не быть
+      - name: Android SDK 37
+        uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
+          cmdline-tools-version: "14742923"
+          packages: "platforms;android-37.0 build-tools;37.0.0 platform-tools"
+
       # Ключ Яндекс Карт берётся из секрета MAPKIT_API_KEY (Settings → Secrets → Actions)
       - name: Настройки Gradle и local.properties
         env:

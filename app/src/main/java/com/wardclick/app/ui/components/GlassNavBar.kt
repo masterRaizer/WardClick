@@ -1,52 +1,42 @@
 package com.wardclick.app.ui.components
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import com.wardclick.app.ui.theme.GlassDefaults
-import com.wardclick.app.ui.theme.glassSelected
-import com.wardclick.app.ui.theme.liquidGlass
+import com.kyant.backdrop.backdrops.emptyBackdrop
+import com.kyant.backdrop.catalog.components.LiquidBottomTab
+import com.kyant.backdrop.catalog.components.LiquidBottomTabs
+import com.kyant.backdrop.catalog.components.LiquidButton
+import com.wardclick.app.ui.theme.LocalScreenBackdrop
+import com.wardclick.app.ui.theme.glassFilm
 
 data class GlassNavItem(val icon: ImageVector, val label: String)
 
+/** Жёсткость хода капли: мягче, чем в каталоге, — у нас до шести вкладок и ход длинный. */
+private const val TabTravelStiffness = 500f
+
 /**
- * Плавающая стеклянная панель вкладок («Liquid Glass»): под ней размывается контент экрана,
- * а подсветка выбранной вкладки перетекает к новой с лёгкой пружинкой.
+ * Плавающая панель вкладок «жидкое стекло» — LiquidBottomTabs из каталога Kyant Backdrop:
+ * под капсулой размывается и преломляется контент экрана, выбранную вкладку отмечает
+ * капля-линза, которую можно тянуть пальцем по панели.
  */
 @Composable
 fun GlassNavBar(
@@ -55,89 +45,72 @@ fun GlassNavBar(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    val backdrop = LocalScreenBackdrop.current ?: emptyBackdrop()
+    val scheme = MaterialTheme.colorScheme
+    // Лямбда одна на всё время: компонент запоминает по ней своё состояние
+    val selectedState = rememberUpdatedState(selectedIndex)
+    val selectedTabIndex = remember { { selectedState.value.coerceAtLeast(0) } }
+    // Компонент сообщает и о смене вкладки снаружи — переходить туда повторно не нужно.
+    // Обработчик он запоминает при первом показе, поэтому берём всегда актуальный onSelect
+    val onSelectState = rememberUpdatedState(onSelect)
+    val select: (Int) -> Unit = remember {
+        { index: Int -> if (index != selectedState.value) onSelectState.value(index) }
+    }
+
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(start = 14.dp, end = 14.dp, bottom = 10.dp, top = 6.dp)
     ) {
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(66.dp)
-                .liquidGlass(GlassDefaults.Pill, blur = true, elevation = 14.dp, dense = true)
-                .padding(5.dp)
-        ) {
-            val count = items.size.coerceAtLeast(1)
-            val itemWidth = maxWidth / count
-            // одинаковый размер подписей у всех вкладок — подбирается по самой длинной,
-            // иначе «Избранное» сжималась сильнее соседних подписей
-            val measurer = rememberTextMeasurer()
-            val density = LocalDensity.current
-            val baseStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
-            val labelStyle = remember(items, itemWidth, baseStyle, density) {
-                val available = with(density) { (itemWidth - 4.dp).toPx() }
-                var scale = 1f
-                while (scale > 0.6f && items.any {
-                        measurer.measure(it.label, baseStyle.copy(fontSize = baseStyle.fontSize * scale), maxLines = 1, softWrap = false)
-                            .size.width > available
-                    }
-                ) {
-                    scale -= 0.05f
+        val count = items.size.coerceAtLeast(1)
+        // одинаковый размер подписей у всех вкладок — подбирается по самой длинной,
+        // иначе «Избранное» сжималась сильнее соседних подписей
+        val itemWidth = (maxWidth - 8.dp) / count
+        val measurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val baseStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
+        val labelStyle = remember(items, itemWidth, baseStyle, density) {
+            val available = with(density) { (itemWidth - 6.dp).toPx() }
+            var scale = 1f
+            while (scale > 0.6f && items.any {
+                    measurer.measure(it.label, baseStyle.copy(fontSize = baseStyle.fontSize * scale), maxLines = 1, softWrap = false)
+                        .size.width > available
                 }
-                baseStyle.copy(fontSize = baseStyle.fontSize * scale)
+            ) {
+                scale -= 0.05f
             }
-            val indicatorX by animateDpAsState(
-                targetValue = itemWidth * selectedIndex.coerceAtLeast(0),
-                animationSpec = spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
-                label = "glassIndicator"
-            )
-            // «капля» выбранной вкладки
-            if (selectedIndex >= 0) {
-                Box(
-                    modifier = Modifier
-                        .offset(x = indicatorX)
-                        .width(itemWidth)
-                        .fillMaxHeight()
-                        .clip(GlassDefaults.Pill)
-                        .background(glassSelected())
-                        .background(
-                            Brush.verticalGradient(
-                                0f to Color.White.copy(alpha = 0.35f),
-                                1f to Color.White.copy(alpha = 0f)
-                            )
-                        )
-                        .border(1.dp, Color.White.copy(alpha = 0.6f), GlassDefaults.Pill)
-                )
-            }
-            Row(modifier = Modifier.fillMaxWidth().fillMaxHeight(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            baseStyle.copy(fontSize = baseStyle.fontSize * scale)
+        }
+        // число вкладок меняется при входе администратора — тогда панель собирается заново
+        key(count) {
+            LiquidBottomTabs(
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = select,
+                backdrop = backdrop,
+                tabsCount = count,
+                accentColor = scheme.primary,
+                // подписи лежат поверх фото в ленте — плёнка плотнее, чем в каталоге
+                containerColor = glassFilm(isSystemInDarkTheme(), dense = true),
+                stiffness = TabTravelStiffness
+            ) {
                 items.forEachIndexed { index, item ->
-                    val selected = index == selectedIndex
-                    val color by animateColorAsState(
-                        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "navColor"
-                    )
-                    Column(
-                        modifier = Modifier
-                            .width(itemWidth)
-                            .fillMaxHeight()
-                            .clip(GlassDefaults.Pill)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { onSelect(index) },
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    LiquidBottomTab(
+                        onClick = { select(index) },
+                        modifier = Modifier.semantics { selected = index == selectedIndex }
                     ) {
-                        Icon(item.icon, contentDescription = item.label, tint = color, modifier = Modifier.size(22.dp))
-                        Spacer(Modifier.height(2.dp))
+                        Icon(
+                            item.icon,
+                            contentDescription = item.label,
+                            tint = scheme.onSurface,
+                            modifier = Modifier.size(22.dp)
+                        )
                         Text(
                             item.label,
-                            style = labelStyle.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
-                            color = color,
+                            style = labelStyle,
+                            color = scheme.onSurface,
                             maxLines = 1,
-                            softWrap = false,
-                            modifier = Modifier.padding(horizontal = 2.dp)
+                            softWrap = false
                         )
                     }
                 }
@@ -146,7 +119,7 @@ fun GlassNavBar(
     }
 }
 
-/** Стеклянная кнопка-«пилюля» поверх контента (например, «Заказ: 2»). */
+/** Стеклянная кнопка-«пилюля» поверх контента (например, «Заказ: 2») — LiquidButton из каталога. */
 @Composable
 fun GlassPillButton(
     icon: ImageVector,
@@ -154,17 +127,18 @@ fun GlassPillButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .height(52.dp)
-            .liquidGlass(GlassDefaults.Pill, blur = true, elevation = 10.dp)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
+    LiquidButton(
+        onClick = onClick,
+        backdrop = LocalScreenBackdrop.current ?: emptyBackdrop(),
+        modifier = modifier,
+        surfaceColor = glassFilm(isSystemInDarkTheme(), dense = true)
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.width(10.dp))
-        Text(text, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface)
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

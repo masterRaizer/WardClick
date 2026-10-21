@@ -79,10 +79,11 @@ import com.wardclick.app.ui.components.GlassNavBar
 import com.wardclick.app.ui.components.GlassNavItem
 import com.wardclick.app.ui.components.GlassPillButton
 import com.wardclick.app.ui.theme.GlassBackground
+import com.wardclick.app.ui.theme.LocalBackgroundBackdrop
 import com.wardclick.app.ui.theme.LocalBottomBarPadding
-import com.wardclick.app.ui.theme.LocalHazeState
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.wardclick.app.ui.theme.LocalScreenBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 data class NavBarItem(
     val route: Any,
@@ -188,13 +189,18 @@ fun MainAppScreen(appContainer: AppContainer) {
         it.hasRoute(HomeRoute::class) || it.hasRoute(VipRoute::class)
     } == true
 
-    // «Liquid Glass»: всё, что на экране (фон + контент), — источник размытия для стеклянных панелей
-    val hazeState = remember { HazeState() }
+    // «Liquid Glass»: стекло преломляет то, что под ним. Пишутся два слоя (Kyant Backdrop):
+    // весь экран — для панелей поверх контента, и отдельно фон — для карточек внутри экранов
+    val screenBackdrop = rememberLayerBackdrop()
+    val backgroundBackdrop = rememberLayerBackdrop()
     val selectedTab = topLevelRoutes.indexOfFirst { item ->
         currentDestination?.hierarchy?.any { it.hasRoute(item.routeClass) } == true
     }
 
-    CompositionLocalProvider(LocalHazeState provides hazeState) {
+    CompositionLocalProvider(
+        LocalScreenBackdrop provides screenBackdrop,
+        LocalBackgroundBackdrop provides backgroundBackdrop
+    ) {
     Scaffold(
         containerColor = Color.Transparent,
         floatingActionButton = {
@@ -216,10 +222,10 @@ fun MainAppScreen(appContainer: AppContainer) {
             }
         }
     ) { innerPadding ->
-      // контент уходит под плавающую панель — так её стекло размывает прокручиваемые списки
+      // контент уходит под плавающую панель — так её стекло преломляет прокручиваемые списки
       val bottomBarPadding = if (isBottomBarVisible) innerPadding.calculateBottomPadding() else 0.dp
-      Box(modifier = Modifier.fillMaxSize().hazeSource(hazeState)) {
-        GlassBackground(Modifier.fillMaxSize())
+      Box(modifier = Modifier.fillMaxSize().layerBackdrop(screenBackdrop)) {
+        GlassBackground(Modifier.fillMaxSize().layerBackdrop(backgroundBackdrop))
         CompositionLocalProvider(LocalBottomBarPadding provides bottomBarPadding) {
         NavHost(
             navController = navController,
@@ -401,9 +407,9 @@ fun MainAppScreen(appContainer: AppContainer) {
             }
         }
         } // LocalBottomBarPadding
-      } // Box (hazeSource)
+      } // Box (screenBackdrop)
     } // Scaffold
-    } // LocalHazeState
+    } // LocalScreenBackdrop
 }
 
 @Composable

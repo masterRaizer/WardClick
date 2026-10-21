@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URI
@@ -26,7 +27,8 @@ val apkAbis: List<String> = providers.gradleProperty("wardclick.abis").orNull
 
 android {
     namespace = "com.wardclick.app"
-    compileSdk = 35
+    // 37 — минимум для библиотеки «жидкого стекла» Kyant Backdrop
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.wardclick.app"
@@ -69,12 +71,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 
@@ -191,7 +196,10 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.gson)
-    implementation(libs.haze) // «Liquid Glass»: размытие контента под стеклянными панелями
+    // «Liquid Glass»: размытие, линза и блики (Kyant0/AndroidLiquidGlass, Apache 2.0 — см. THIRD_PARTY.md).
+    // Формы (Capsule) библиотека объявляет только для запуска, для компиляции они подключены отдельно
+    implementation(libs.backdrop)
+    implementation(libs.kyant.shapes)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.yandex.mapkit)

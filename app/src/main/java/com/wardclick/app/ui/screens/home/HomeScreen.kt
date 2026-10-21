@@ -372,7 +372,8 @@ private fun SelectedListingCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth().liquidGlass(RoundedCornerShape(24.dp)),
+        // поверх карты: слоя с картой у стекла нет, поэтому просто полупрозрачная плёнка
+        modifier = modifier.fillMaxWidth().liquidGlass(RoundedCornerShape(24.dp), backdrop = null),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
