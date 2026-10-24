@@ -60,10 +60,13 @@ class ScreenshotTour {
             step("12_profile_admin") {
                 click("Администратор"); click("Войти"); waitText("Выйти из аккаунта")
             }
-            step("13_admin_overview") { nav("Админ"); waitText("Панель администратора") }
+            step("13_admin_overview") {
+                repeat(10) { click("Версия приложения", substring = true) }
+                waitText("Панель администратора")
+            }
             step("14_admin_bookings") { click("Аренды (", substring = true); waitText("Ожидает подтверждения") }
             step("15_admin_listings") { click("Особняки"); waitText("Скрыть") }
-            step("16_bookings_admin") { nav("Аренды"); waitText("Мои аренды") }
+            step("16_bookings_admin") { back(); waitText("Выйти из аккаунта"); nav("Аренды"); waitText("Мои аренды") }
             step("17_search_from_bookings") {
                 nav("Поиск")
                 waitAny("Особняки в городе", "Где хотите отдохнуть?")

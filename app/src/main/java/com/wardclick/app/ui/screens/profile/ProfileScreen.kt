@@ -1,7 +1,9 @@
 package com.wardclick.app.ui.screens.profile
 
 import com.wardclick.app.ui.theme.LocalBottomBarPadding
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,19 +26,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.wardclick.app.BuildConfig
 import com.wardclick.app.ui.components.LoadingBox
 import com.wardclick.app.ui.viewmodels.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onOpenAdmin: () -> Unit
 ) {
     val profile by viewModel.userProfile.collectAsState()
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.loadProfile() }
@@ -77,13 +85,30 @@ fun ProfileScreen(
                     if (p.isAdmin) "Администратор" else "Гость (пользователь)",
                     style = MaterialTheme.typography.titleMedium
                 )
-                if (p.isAdmin) {
-                    Text(
-                        "Вам доступна вкладка «Админ»: подтверждение аренд, особняки и статистика.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            }
+        }
+
+        // Скрытый вход в панель администратора (как в Telegram): 10 нажатий на версию приложения.
+        // Обычному пользователю нажатия ничего не дают, поэтому раздел ему не виден.
+        val context = LocalContext.current
+        var taps by remember { mutableIntStateOf(0) }
+        Card(
+            modifier = Modifier.fillMaxWidth().clickable {
+                if (!p.isAdmin) return@clickable
+                taps++
+                val left = ADMIN_TAPS - taps
+                when {
+                    left <= 0 -> {
+                        taps = 0
+                        onOpenAdmin()
+                    }
+                    left <= 4 -> Toast.makeText(context, "Ещё $left — и откроется панель администратора", Toast.LENGTH_SHORT).show()
                 }
+            }
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("О приложении", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Версия приложения ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.titleMedium)
             }
         }
 
@@ -102,3 +127,6 @@ fun ProfileScreen(
         }
     }
 }
+
+/** Сколько нажатий на версию приложения открывают панель администратора. */
+private const val ADMIN_TAPS = 10

@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -100,11 +99,9 @@ private val TOP_LEVEL_ROUTES = listOf(
     NavBarItem(ProfileRoute, ProfileRoute::class, Icons.Default.Person, "Профиль")
 )
 
-private val ADMIN_ITEM = NavBarItem(AdminRoute, AdminRoute::class, Icons.Default.Settings, "Админ")
-
 /** Порядок вкладок нижнего меню — для выбора направления сдвига. */
 private val TAB_ORDER: List<KClass<*>> = listOf(
-    HomeRoute::class, VipRoute::class, FavoritesRoute::class, BookingsRoute::class, ProfileRoute::class, AdminRoute::class
+    HomeRoute::class, VipRoute::class, FavoritesRoute::class, BookingsRoute::class, ProfileRoute::class
 )
 
 // Плавный переход «общая ось X» (Material Motion): экраны сдвигаются на ~30 % ширины
@@ -167,7 +164,8 @@ fun MainAppScreen(appContainer: AppContainer) {
     val factory = remember(appContainer) { ViewModelFactory(appContainer) }
     val cartItems by appContainer.cartRepository.items.collectAsState()
 
-    val topLevelRoutes = if (isAdmin) TOP_LEVEL_ROUTES + ADMIN_ITEM else TOP_LEVEL_ROUTES
+    // вкладки «Админ» в панели нет: администратор открывает её скрытым жестом в профиле
+    val topLevelRoutes = TOP_LEVEL_ROUTES
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -296,7 +294,8 @@ fun MainAppScreen(appContainer: AppContainer) {
                             isLoggedIn = false
                             isAdmin = false
                             navController.navigate(HomeRoute) { popUpTo(0) { inclusive = true } }
-                        }
+                        },
+                        onOpenAdmin = { navController.navigate(AdminRoute) { launchSingleTop = true } }
                     )
                 }
             }
