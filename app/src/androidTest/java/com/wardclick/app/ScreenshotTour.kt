@@ -63,6 +63,8 @@ class ScreenshotTour {
             step("13_admin_overview") {
                 repeat(10) { click("Версия приложения", substring = true) }
                 waitText("Панель администратора")
+                waitText("Пользователи")
+                Thread.sleep(1000)
             }
             step("14_admin_bookings") { click("Аренды (", substring = true); waitText("Ожидает подтверждения") }
             step("15_admin_listings") { click("Особняки"); waitText("Скрыть") }

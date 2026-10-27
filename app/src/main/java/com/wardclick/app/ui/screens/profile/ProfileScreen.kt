@@ -92,6 +92,8 @@ fun ProfileScreen(
         // Обычному пользователю нажатия ничего не дают, поэтому раздел ему не виден.
         val context = LocalContext.current
         var taps by remember { mutableIntStateOf(0) }
+        // одна подсказка за раз: новая заменяет предыдущую, иначе они встают в очередь
+        val hint = remember { arrayOfNulls<Toast>(1) }
         Card(
             modifier = Modifier.fillMaxWidth().clickable {
                 if (!p.isAdmin) return@clickable
@@ -100,9 +102,14 @@ fun ProfileScreen(
                 when {
                     left <= 0 -> {
                         taps = 0
+                        hint[0]?.cancel()
                         onOpenAdmin()
                     }
-                    left <= 4 -> Toast.makeText(context, "Ещё $left — и откроется панель администратора", Toast.LENGTH_SHORT).show()
+                    left <= 4 -> {
+                        hint[0]?.cancel()
+                        hint[0] = Toast.makeText(context, "Ещё $left — и откроется панель администратора", Toast.LENGTH_SHORT)
+                            .also { it.show() }
+                    }
                 }
             }
         ) {
