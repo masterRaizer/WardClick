@@ -109,7 +109,7 @@ class ScreenshotTour {
             )
         }
         // как на скриншоте пользователя: бронь администратора со всеми VIP-услугами
-        book("mock-admin-token", "l1", 4, 8, 2, listOf("v1", "v2", "v3", "v4", "v5", "v6"))
+        book("mock-admin-token", "l1", 4, 8, 2, (1..15).map { "v$it" })
         book("mock-user-token", "l3", 10, 4, 4, listOf("v2", "v4"))
     }
 

@@ -66,14 +66,26 @@ class MockApiService(
     )
 
     // Удобства особняков (индексы 0..9 используются в демо-данных ниже)
-    // VIP-услуги (заказываются вместе с арендой особняка)
+    // VIP-услуги (заказываются вместе с арендой особняка): транспорт, персонал, отдых и праздники
     private val vipServices = listOf(
+        // транспорт
         VipServiceDto("v1", "Вертолёт до особняка", "Перелёт из аэропорта или города прямо на вертолётную площадку особняка.", "helicopter", BigDecimal(350000), VipServiceDto.UNIT_PER_TRIP, true),
+        VipServiceDto("v7", "Трансфер из аэропорта", "Встреча в аэропорту или на вокзале и трансфер на автомобиле представительского класса туда и обратно.", "transfer", BigDecimal(20000), VipServiceDto.UNIT_ONCE, false),
         VipServiceDto("v2", "Личный водитель", "Автомобиль бизнес-класса с водителем на всё время отдыха.", "driver", BigDecimal(25000), VipServiceDto.UNIT_PER_DAY, false),
+        VipServiceDto("v8", "Прогулка на яхте", "Яхта с капитаном и командой на целый день: море, река или озеро рядом с особняком.", "yacht", BigDecimal(150000), VipServiceDto.UNIT_ONCE, false),
+        // персонал
         VipServiceDto("v3", "Консьерж 24/7", "Бронирование ресторанов, билеты, экскурсии и любые поручения в любое время суток.", "concierge", BigDecimal(15000), VipServiceDto.UNIT_PER_DAY, false),
         VipServiceDto("v4", "Шеф-повар", "Завтраки, обеды и ужины в особняке по вашему меню.", "chef", BigDecimal(20000), VipServiceDto.UNIT_PER_DAY, false),
         VipServiceDto("v5", "Горничная", "Ежедневная уборка, смена белья и порядок в доме.", "maid", BigDecimal(8000), VipServiceDto.UNIT_PER_DAY, false),
-        VipServiceDto("v6", "Личная охрана", "Сопровождение и охрана гостей во время отдыха.", "guard", BigDecimal(30000), VipServiceDto.UNIT_PER_DAY, false)
+        VipServiceDto("v9", "Няня", "Опытная няня присмотрит за детьми и займёт их играми, пока взрослые отдыхают.", "nanny", BigDecimal(9000), VipServiceDto.UNIT_PER_DAY, false),
+        VipServiceDto("v6", "Личная охрана", "Сопровождение и охрана гостей во время отдыха.", "guard", BigDecimal(30000), VipServiceDto.UNIT_PER_DAY, false),
+        // отдых и праздники
+        VipServiceDto("v10", "СПА и массаж", "Массажист и косметолог проводят процедуры прямо в особняке.", "spa", BigDecimal(18000), VipServiceDto.UNIT_PER_DAY, false),
+        VipServiceDto("v11", "Персональный тренер", "Тренировки, йога или пилатес с тренером в удобное время.", "trainer", BigDecimal(10000), VipServiceDto.UNIT_PER_DAY, false),
+        VipServiceDto("v12", "Личный гид", "Индивидуальные экскурсии по городу и окрестностям по вашему маршруту.", "guide", BigDecimal(12000), VipServiceDto.UNIT_PER_DAY, false),
+        VipServiceDto("v13", "Сомелье и дегустация", "Сомелье подберёт вина к ужину и проведёт дегустацию в особняке.", "wine", BigDecimal(40000), VipServiceDto.UNIT_ONCE, false),
+        VipServiceDto("v14", "Фотосессия", "Профессиональный фотограф снимет отдых в особняке и на природе, готовые фото — через 3 дня.", "photo", BigDecimal(35000), VipServiceDto.UNIT_ONCE, false),
+        VipServiceDto("v15", "Организация праздника", "Декор, ведущий, живая музыка или диджей: день рождения, юбилей или предложение руки и сердца.", "event", BigDecimal(120000), VipServiceDto.UNIT_ONCE, false)
     )
 
     private val allAmenities = listOf(

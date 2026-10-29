@@ -52,7 +52,8 @@ fun VipScreen(
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Сервис уровня «всё включено»", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             Text(
-                                "Вертолёт, личный водитель, консьерж и персонал заказываются вместе с арендой особняка. " +
+                                "Транспорт, персонал, отдых и праздники — от вертолёта и яхты до няни, СПА и фотографа — " +
+                                    "заказываются вместе с арендой особняка. " +
                                     "Цена зависит от особняка — от 75% до 160% базовой. " +
                                     "Пакет «Всё включено»: −${Pricing.ALL_INCLUSIVE_VIP_PERCENT}% на услуги и −${Pricing.ALL_INCLUSIVE_STAY_PERCENT}% на проживание.",
                                 style = MaterialTheme.typography.bodyMedium

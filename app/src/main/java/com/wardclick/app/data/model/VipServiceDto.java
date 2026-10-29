@@ -2,7 +2,7 @@ package com.wardclick.app.data.model;
 
 import java.math.BigDecimal;
 
-/** VIP-услуга: вертолёт, личный водитель, консьерж, персонал и т.п. */
+/** VIP-услуга: вертолёт, яхта, личный водитель, консьерж, персонал, СПА, праздники и т.п. */
 public class VipServiceDto {
     public static final String UNIT_PER_DAY = "PER_DAY";   // цена за сутки (умножается на число ночей)
     public static final String UNIT_PER_TRIP = "PER_TRIP"; // цена за один полёт / поездку

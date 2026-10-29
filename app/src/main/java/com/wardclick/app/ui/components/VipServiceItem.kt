@@ -12,13 +12,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AirportShuttle
+import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.material.icons.filled.ChildCare
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Flight
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.Sailing
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material.icons.filled.Tour
+import androidx.compose.material.icons.filled.WineBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,11 +46,20 @@ import com.wardclick.app.util.unitLabel
 
 fun vipIcon(code: String?): ImageVector = when (code) {
     "helicopter" -> Icons.Default.Flight
+    "transfer" -> Icons.Default.AirportShuttle
     "driver" -> Icons.Default.DirectionsCar
+    "yacht" -> Icons.Default.Sailing
     "concierge" -> Icons.Default.SupportAgent
     "chef" -> Icons.Default.RestaurantMenu
     "maid" -> Icons.Default.CleaningServices
+    "nanny" -> Icons.Default.ChildCare
     "guard" -> Icons.Default.Security
+    "spa" -> Icons.Default.Spa
+    "trainer" -> Icons.Default.FitnessCenter
+    "guide" -> Icons.Default.Tour
+    "wine" -> Icons.Default.WineBar
+    "photo" -> Icons.Default.PhotoCamera
+    "event" -> Icons.Default.Celebration
     else -> Icons.Default.Star
 }
 
