@@ -75,6 +75,28 @@ jobs:
             src="docs/ФедоровИСП823_курсовой_проект.$ext"
             if [ -f "$src" ]; then cp "$src" "dist/WardClick-$TAG-poyasnitelnaya-zapiska.$ext"; fi
           done
+          # комплект для защиты на чистом ПК: инструкция, скрипт установки, база, APK, код, записка
+          if [ -d docs/zashita ]; then
+            kit="kit/WardClick-$TAG"
+            mkdir -p "$kit"
+            cp docs/zashita/* "$kit/"
+            cp docs/WardClick.sql "$kit/"
+            cp "dist/WardClick-$TAG-x86_64.apk" "dist/WardClick-$TAG-arm64-v8a.apk" "dist/WardClick-$TAG-source.zip" "$kit/"
+            for ext in docx pdf; do
+              src="docs/ФедоровИСП823_курсовой_проект.$ext"
+              if [ -f "$src" ]; then cp "$src" "$kit/Пояснительная_записка.$ext"; fi
+            done
+            # файлы в корне архива; zipfile ставит флаг UTF-8, чтобы русские имена читались в проводнике Windows
+            python3 - "$kit" "dist/WardClick-$TAG-komplekt-dlya-zashity.zip" <<'PY'
+          import os, sys, zipfile
+          src, out = sys.argv[1], sys.argv[2]
+          with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+              for name in sorted(os.listdir(src)):
+                  z.write(os.path.join(src, name), name)
+                  print(name)
+          PY
+            ls -la "dist/WardClick-$TAG-komplekt-dlya-zashity.zip"
+          fi
           ls -la dist
 
       - name: Публикация релиза
